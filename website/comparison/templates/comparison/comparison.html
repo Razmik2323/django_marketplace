@@ -1,0 +1,159 @@
+{% extends 'core/base.html' %}
+{% load custom_filters %}
+{% load static %}
+{% load i18n %}
+
+
+{% block description %}
+    <meta name="description" content="{% trans 'Page Description' %}">
+{% endblock %}
+
+{% block title %}
+    {% trans 'Product Comparison' %}
+{% endblock %}
+
+{% block body %}
+    <div class="Middle">
+        <div class="wrap">
+            <div class="Product">
+                <div class="ProductCard ProductCardComparison">
+                    {% if comparison_products %}
+                        <div class="unic_spec_form">
+                            <form action="{% url 'comparison:comparison_page' %}" method="get">
+                                <label for="unic_spec" class="unic_spec_label">
+                                    <input id="unic_spec" name="unic_spec" type="checkbox"
+                                           {% if unic_spec %}checked{% endif %}>
+                                    {% trans 'Remove the same characteristics' %}
+                                </label>
+                                <button id="myButton"></button>
+                            </form>
+                        </div>
+                        {% for category, comparisons in comparison_products.items %}
+                            <h1>{% trans 'The category being compared' %}: {{ category.name }}</h1>
+                            <div class="CategoryComparison">
+                                {% for comparison in comparisons %}
+                                    <div class="ProductCard-desc">
+                                        <div class="ProductCard-header">
+                                            {% if comparison.product.name %}
+                                                <h2 class="ProductCard-title">
+                                                    <a href="{{ comparison.product.get_absolute_url }}">
+                                                        {{ comparison.product.name|truncatechars:30 }}</a>
+                                                </h2>
+                                            {% else %}
+                                                <h2 class="ProductCard-title">
+                                                    <a href="{{ comparison.product.get_absolute_url }}">
+                                                        {{ comparison.name|truncatechars:30 }}</a>
+                                                </h2>
+                                            {% endif %}
+                                            <div class="ProductCard-look">
+                                                <div class="ProductCard-photo">
+                                                    {% if comparison.product.name %}
+                                                        <img src="{{ comparison.product.preview.url }}"
+                                                             alt="bigGoods.png"/>
+                                                    {% else %}
+                                                        <img src="{{ comparison.preview.url }}"
+                                                             alt="bigGoods.png"/>
+                                                    {% endif %}
+
+                                                    <div class="DeleteButton">
+                                                        <form class="delete_form">
+                                                            <input type="hidden" name="product_id"
+                                                                   value="{% if comparison.product.pk %}{{ comparison.product.pk }}{% else %}{{ comparison.pk }}{% endif %}">
+                                                            <button type="submit" class="DeleteLink"></button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="Tabs Tabs_default">
+                                                <div class="Tabs-wrap">
+                                                    <div class="Tabs-block" id="description">
+                                                        <div class="table">
+                                                            <table>
+                                                                <tr>
+                                                                    <th class="hed">{% trans 'Characteristic' %}</th>
+                                                                    <th class="hed">{% trans 'Value' %}</th>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td><b>{% trans 'General parameters' %}</b></td>
+                                                                    <td></td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="comparis">{% trans 'Type' %}</td>
+                                                                    {% if comparison.product.product_type %}
+                                                                        <td class="comparis">{{ comparison.product.product_type }}</td>
+                                                                    {% else %}
+                                                                        <td class="comparis">{{ comparison.product_type }}</td>
+                                                                    {% endif %}
+                                                                </tr>
+                                                                {% for foo in correct_spec|get_item:category.name %}
+                                                                    <tr>
+                                                                        <td>{{ foo }}</td>
+                                                                        {% if comparison.product.specifications %}
+                                                                            <td>{{ comparison.product.specifications|get_spec:foo }}</td>
+                                                                        {% else %}
+                                                                            <td>{{ comparison.specifications|get_spec:foo }}</td>
+                                                                        {% endif %}
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            </table>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div class="ProductCard-info">
+                                            <div class="ProductCard-cost">
+                                                <div class="ProductCard-price">
+                                                    {% if comparison.min_price %}
+                                                        $ {{ comparison.min_price }}
+                                                    {% else %}
+                                                        {% trans 'Not available for sale' %}
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="ProductCard-cart">
+
+                                            <div class="ProductCard-cartElement"><a class="btn btn_primary btn-add-to-cart"
+                                                                                    href="../../../static/cart.html"
+                                                                                    data-product_id="{{ comparison.product.pk }}"
+                                                                                    data-price_id="{{ comparison.product.prices.first.pk }}"><img
+                                                    class="btn-icon"
+                                                    src="../../../static/assets/img/icons/card/cart_white.svg"
+                                                    alt="cart_white.svg"/><span
+                                                    class="btn-content">{% trans 'Add to cart' %}</span></a>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>{% trans 'There are no products to compare' %}.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>const DELETE_PRODUCT = "{% url 'comparison:comparison_delete' %}";</script>
+    <script src="{% static 'comparison/js/comparison_product.js' %}"></script>
+    <script src="{% static 'assets/js/cart/add_product_cart.js' %}"></script>
+    <script>
+        // Получаем элементы чекбокса и кнопки
+        const checkBox = document.getElementById('unic_spec');
+        const button = document.getElementById('myButton');
+
+        // Добавляем обработчик события на изменение состояния чекбокса
+        checkBox.addEventListener('change', function () {
+            // Нажимаем кнопку каждый раз, когда состояние чекбокса меняется
+            button.click();
+        });
+    </script>
+{% endblock %}
