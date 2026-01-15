@@ -1,4 +1,4 @@
-# Megano Django Website
+# Django Website
 
 ## Оглавление:
 - **[Описание проекта](#описание-проекта)**
